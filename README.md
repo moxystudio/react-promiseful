@@ -137,7 +137,7 @@ Default: 0 (disabled)
 
 The delay in ms to wait for the promise to settle before changing status to `pending`. Useful if you want to render a loading only when the promise is taking some time.
 
-When a `delayMs` is specified an when the `promise` prop changes from `undefined` to a promise, the status will be `none` during the specified delay and changes to `pending` afterwards.
+When a `delayMs` is specified and when the `promise` prop changes from `undefined` to a promise, the status will be `none` during the specified delay and changes to `pending` afterwards.
 
 ##### resetFulfilledDelayMs
 
