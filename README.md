@@ -112,7 +112,7 @@ A render prop function with the following signature:
 
 The status argument is one of `none`, `pending`, `rejected`, `fulfilled`. The value argument is either the fulfillment value or the rejection value.
 
-The `none` status only happens when there's no promise or when reset. Please see [`delayMs`](#delayms) or [`resetDelayMs`](#resetdelayms) props for more info.
+The `none` status only happens when there's no promise or when reset. Please see [`delayMs`](#delayms), [`resetFulfilledDelayMs`](#resetfulfilleddelayms) and [`resetRejectedDelayMs`](#resetrejecteddelayms) props for more info.
 
 ##### statusMap
 
@@ -159,7 +159,7 @@ The hook version of the `<PromiseStatus>` component.
 
 Returns an array with `[status, value]`.
 
-The options are the same as the `<PromiseStatus>`'s props counterparts: [`statusMap`](#statusmap), [`delayMs`](#delayms) or [`resetDelayMs`](#resetdelayms)
+The options are the same as the `<PromiseStatus>`'s props counterparts: [`statusMap`](#statusmap), [`delayMs`](#delayms), [`resetFulfilledDelayMs`](#resetfulfilleddelayms) and [`resetRejectedDelayMs`](#resetrejecteddelayms).
 
 
 ## Tests
