@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { render } from 'react-testing-library';
 import pDelay from 'delay';
 import { PromiseStatus } from '../src';
@@ -32,6 +32,8 @@ it('should render correctly when rejected', async () => {
     const error = new Error('foo');
     const promise = Promise.reject(error);
     const childrenFn = jest.fn(() => <div>foo</div>);
+
+    promise.catch(() => {});
 
     render(
         <PromiseStatus promise={ promise }>
@@ -111,12 +113,12 @@ describe('props as options', () => {
         expect(childrenFn).toHaveBeenNthCalledWith(3, 'fulfilled', 'foo');
     });
 
-    it('should pass resetDelayMs prop as an option to the hook', async () => {
+    it('should pass resetFulfilledDelayMs prop as an option to the hook', async () => {
         const promise = Promise.resolve('foo');
         const childrenFn = jest.fn(() => <div>foo</div>);
 
         render(
-            <PromiseStatus promise={ promise } resetDelayMs={ 100 }>
+            <PromiseStatus promise={ promise } resetFulfilledDelayMs={ 100 }>
                 { childrenFn }
             </PromiseStatus>
         );
@@ -126,6 +128,27 @@ describe('props as options', () => {
         expect(childrenFn).toHaveBeenCalledTimes(3);
         expect(childrenFn).toHaveBeenNthCalledWith(1, 'pending', undefined);
         expect(childrenFn).toHaveBeenNthCalledWith(2, 'fulfilled', 'foo');
+        expect(childrenFn).toHaveBeenNthCalledWith(3, 'none', undefined);
+    });
+
+    it('should pass resetRejectedDelayMs prop as an option to the hook', async () => {
+        const error = new Error('foo');
+        const promise = Promise.reject(error);
+        const childrenFn = jest.fn(() => <div>foo</div>);
+
+        promise.catch(() => {});
+
+        render(
+            <PromiseStatus promise={ promise } resetRejectedDelayMs={ 100 }>
+                { childrenFn }
+            </PromiseStatus>
+        );
+
+        await pDelay(110);
+
+        expect(childrenFn).toHaveBeenCalledTimes(3);
+        expect(childrenFn).toHaveBeenNthCalledWith(1, 'pending', undefined);
+        expect(childrenFn).toHaveBeenNthCalledWith(2, 'rejected', error);
         expect(childrenFn).toHaveBeenNthCalledWith(3, 'none', undefined);
     });
 });

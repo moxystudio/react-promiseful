@@ -139,13 +139,19 @@ The delay in ms to wait for the promise to settle before changing status to `pen
 
 When a `delayMs` is specified an when the `promise` prop changes from `undefined` to a promise, the status will be `none` during the specified delay and changes to `pending` afterwards.
 
-##### resetDelayMs
+##### resetFulfilledDelayMs
 
 Type: `Number`   
 Default: 0 (disabled)
 
-The delay in ms to change the status to `none` after the promise settles. Useful if you no longer want to render a success or error message after a certain time.
+The delay in ms to change the status to `none` after the promise fulfills. Useful if you no longer want to render a success message after a certain time.
 
+##### resetRejectedDelayMs
+
+Type: `Number`   
+Default: 0 (disabled)
+
+The delay in ms to change the status to `none` after the promise rejects. Useful if you no longer want to render an error message after a certain time.
 
 ### usePromiseStatus(promise, [options])
 

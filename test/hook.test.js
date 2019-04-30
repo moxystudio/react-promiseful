@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { render } from 'react-testing-library';
 import pDelay from 'delay';
 import { usePromiseStatus } from '../src';
@@ -38,6 +38,8 @@ it('should return the correct status and value when rejected', async () => {
     const error = new Error('foo');
     const promise = Promise.reject(error);
     const childrenFn = jest.fn(() => <div>foo</div>);
+
+    promise.catch(() => {});
 
     render(
         <PromiseStatus promise={ promise }>
@@ -131,6 +133,8 @@ it('should cleanup correctly if a rejected promise changes', async () => {
     const promise1 = Promise.reject(new Error('foo'));
     const promise2 = Promise.resolve('bar');
     const childrenFn = jest.fn(() => <div>foo</div>);
+
+    promise1.catch(() => {});
 
     const { rerender } = render(
         <PromiseStatus promise={ promise1 }>
@@ -240,7 +244,7 @@ describe('statusMap option', () => {
         const statusMap2 = { pending: 'buffering' };
         const childrenFn = jest.fn(() => <div>foo</div>);
 
-        const { rerender } = render(
+        const { rerender } = render(
             <PromiseStatus promise={ promise } statusMap={ statusMap1 }>
                 { childrenFn }
             </PromiseStatus>
@@ -378,13 +382,13 @@ describe('delayMs option', () => {
     });
 });
 
-describe('resetDelayMs option', () => {
-    it('should reset status after the delay', async () => {
+describe('resetFulfilledDelayMs option', () => {
+    it('should reset status after the delay if fulfilled', async () => {
         const promise = Promise.resolve('foo');
         const childrenFn = jest.fn(() => <div>foo</div>);
 
         render(
-            <PromiseStatus promise={ promise } resetDelayMs={ 100 }>
+            <PromiseStatus promise={ promise } resetFulfilledDelayMs={ 100 }>
                 { childrenFn }
             </PromiseStatus>
         );
@@ -397,13 +401,33 @@ describe('resetDelayMs option', () => {
         expect(childrenFn).toHaveBeenNthCalledWith(3, 'none', undefined);
     });
 
+    it('should not reset status after the delay if rejected', async () => {
+        const error = new Error('foo');
+        const promise = Promise.reject(error);
+        const childrenFn = jest.fn(() => <div>foo</div>);
+
+        promise.catch(() => {});
+
+        render(
+            <PromiseStatus promise={ promise } resetFulfilledDelayMs={ 100 }>
+                { childrenFn }
+            </PromiseStatus>
+        );
+
+        await pDelay(110);
+
+        expect(childrenFn).toHaveBeenCalledTimes(2);
+        expect(childrenFn).toHaveBeenNthCalledWith(1, 'pending', undefined);
+        expect(childrenFn).toHaveBeenNthCalledWith(2, 'rejected', error);
+    });
+
     it('should cleanup correctly if promise changes in between', async () => {
         const promise1 = Promise.resolve('foo');
         const promise2 = Promise.resolve('bar');
         const childrenFn = jest.fn(() => <div>foo</div>);
 
         const { rerender } = render(
-            <PromiseStatus promise={ promise1 } resetDelayMs={ 100 }>
+            <PromiseStatus promise={ promise1 } resetFulfilledDelayMs={ 100 }>
                 { childrenFn }
             </PromiseStatus>
         );
@@ -416,7 +440,7 @@ describe('resetDelayMs option', () => {
         childrenFn.mockClear();
 
         rerender(
-            <PromiseStatus promise={ promise2 } resetDelayMs={ 100 }>
+            <PromiseStatus promise={ promise2 } resetFulfilledDelayMs={ 100 }>
                 { childrenFn }
             </PromiseStatus>
         );
@@ -435,7 +459,105 @@ describe('resetDelayMs option', () => {
         const childrenFn = jest.fn(() => <div>foo</div>);
 
         const { unmount } = render(
-            <PromiseStatus promise={ promise } resetDelayMs={ 100 }>
+            <PromiseStatus promise={ promise } resetFulfilledDelayMs={ 100 }>
+                { childrenFn }
+            </PromiseStatus>
+        );
+
+        unmount();
+
+        await pDelay(110);
+
+        expect(childrenFn).toHaveBeenCalledTimes(1);
+        expect(childrenFn).toHaveBeenNthCalledWith(1, 'pending', undefined);
+    });
+});
+
+describe('resetRejectedDelayMs option', () => {
+    it('should reset status after the delay if rejected', async () => {
+        const error = new Error('foo');
+        const promise = Promise.reject(error);
+        const childrenFn = jest.fn(() => <div>foo</div>);
+
+        promise.catch(() => {});
+
+        render(
+            <PromiseStatus promise={ promise } resetRejectedDelayMs={ 100 }>
+                { childrenFn }
+            </PromiseStatus>
+        );
+
+        await pDelay(110);
+
+        expect(childrenFn).toHaveBeenCalledTimes(3);
+        expect(childrenFn).toHaveBeenNthCalledWith(1, 'pending', undefined);
+        expect(childrenFn).toHaveBeenNthCalledWith(2, 'rejected', error);
+        expect(childrenFn).toHaveBeenNthCalledWith(3, 'none', undefined);
+    });
+
+    it('should not reset status after the delay if fulfilled', async () => {
+        const promise = Promise.resolve('foo');
+        const childrenFn = jest.fn(() => <div>foo</div>);
+
+        render(
+            <PromiseStatus promise={ promise } resetRejectedDelayMs={ 100 }>
+                { childrenFn }
+            </PromiseStatus>
+        );
+
+        await pDelay(110);
+
+        expect(childrenFn).toHaveBeenCalledTimes(2);
+        expect(childrenFn).toHaveBeenNthCalledWith(1, 'pending', undefined);
+        expect(childrenFn).toHaveBeenNthCalledWith(2, 'fulfilled', 'foo');
+    });
+
+    it('should cleanup correctly if promise changes in between', async () => {
+        const error1 = new Error('foo');
+        const promise1 = Promise.reject(error1);
+        const error2 = new Error('foo');
+        const promise2 = Promise.reject(error2);
+        const childrenFn = jest.fn(() => <div>foo</div>);
+
+        promise1.catch(() => {});
+        promise2.catch(() => {});
+
+        const { rerender } = render(
+            <PromiseStatus promise={ promise1 } resetRejectedDelayMs={ 100 }>
+                { childrenFn }
+            </PromiseStatus>
+        );
+
+        await pDelay(10);
+
+        expect(childrenFn).toHaveBeenCalledTimes(2);
+        expect(childrenFn).toHaveBeenNthCalledWith(1, 'pending', undefined);
+        expect(childrenFn).toHaveBeenNthCalledWith(2, 'rejected', error1);
+        childrenFn.mockClear();
+
+        rerender(
+            <PromiseStatus promise={ promise2 } resetRejectedDelayMs={ 100 }>
+                { childrenFn }
+            </PromiseStatus>
+        );
+
+        await pDelay(110);
+
+        expect(childrenFn).toHaveBeenCalledTimes(4);
+        expect(childrenFn).toHaveBeenNthCalledWith(1, 'rejected', error1);
+        expect(childrenFn).toHaveBeenNthCalledWith(2, 'pending', undefined);
+        expect(childrenFn).toHaveBeenNthCalledWith(3, 'rejected', error2);
+        expect(childrenFn).toHaveBeenNthCalledWith(4, 'none', undefined);
+    });
+
+    it('should cleanup correctly on unmount', async () => {
+        const promise = Promise.reject(new Error('foo'));
+        const childrenFn = jest.fn(() => <div>foo</div>);
+
+        promise.catch(() => {});
+
+        const { unmount } = render(
+            <PromiseStatus promise={ promise } resetRejectedDelayMs={ 100 }>
                 { childrenFn }
             </PromiseStatus>
         );

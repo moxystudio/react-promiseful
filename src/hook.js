@@ -41,12 +41,12 @@ const resolvePromise = (promise, methods) => {
     .then((value) => {
         if (!ignore) {
             methods.then && methods.then(value);
-            methods.finally && methods.finally();
+            methods.finally && methods.finally(true);
         }
     }, (err) => {
         if (!ignore) {
             methods.catch && methods.catch(err);
-            methods.finally && methods.finally();
+            methods.finally && methods.finally(false);
         }
     });
 
@@ -60,7 +60,8 @@ const usePromiseStatus = (promise, options) => {
 
     const statusMap = options.statusMap;
     const delayMs = options.delayMs || 0;
-    const resetDelayMs = options.resetDelayMs || 0;
+    const resetFulfilledDelayMs = options.resetFulfilledDelayMs || 0;
+    const resetRejectedDelayMs = options.resetRejectedDelayMs || 0;
 
     const initialState = useMemo(() => getInitialState(promise, delayMs));
     const [state, dispatch] = useReducer(reducer, initialState);
@@ -89,10 +90,12 @@ const usePromiseStatus = (promise, options) => {
         const cancelResolve = resolvePromise(promise, {
             then: (value) => dispatch({ type: 'fulfilled', payload: value }),
             catch: (err) => dispatch({ type: 'rejected', payload: err }),
-            finally: () => {
+            finally: (fulfilled) => {
                 cancelDelay && cancelDelay();
 
-                // Reset the status after `resetDelayMs`
+                // Reset the status after `resetFulfilledDelayMs`/`resetRejectedDelayMs`
+                const resetDelayMs = fulfilled ? resetFulfilledDelayMs : resetRejectedDelayMs;
+
                 if (resetDelayMs > 0) {
                     cancelResetDelay = resolvePromise(pDelay(resetDelayMs), {
                         then: () => dispatch({ type: 'reset' }),
