@@ -1,2 +1,3 @@
-export { default as PromiseStatus } from './component';
-export { default as usePromiseStatus } from './hook';
+export { default as PromiseState } from './component';
+export { default as usePromiseState } from './hook';
+export { getPromiseState } from './promise';

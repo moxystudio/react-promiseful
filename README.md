@@ -1,18 +1,18 @@
-# react-promise-status
+# react-promiseful
 
 [![NPM version][npm-image]][npm-url] [![Downloads][downloads-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Coverage Status][codecov-image]][codecov-url] [![Dependency status][david-dm-image]][david-dm-url] [![Dev Dependency status][david-dm-dev-image]][david-dm-dev-url]
 
-[npm-url]:https://npmjs.org/package/react-promise-status
-[downloads-image]:http://img.shields.io/npm/dm/react-promise-status.svg
-[npm-image]:http://img.shields.io/npm/v/react-promise-status.svg
-[travis-url]:https://travis-ci.org/moxystudio/react-promise-status
-[travis-image]:http://img.shields.io/travis/moxystudio/react-promise-status/master.svg
-[codecov-url]:https://codecov.io/gh/moxystudio/react-promise-status
-[codecov-image]:https://img.shields.io/codecov/c/github/moxystudio/react-promise-status/master.svg
-[david-dm-url]:https://david-dm.org/moxystudio/react-promise-status
-[david-dm-image]:https://img.shields.io/david/moxystudio/react-promise-status.svg
-[david-dm-dev-url]:https://david-dm.org/moxystudio/react-promise-status?type=dev
-[david-dm-dev-image]:https://img.shields.io/david/dev/moxystudio/react-promise-status.svg
+[npm-url]:https://npmjs.org/package/react-promiseful
+[downloads-image]:http://img.shields.io/npm/dm/react-promiseful.svg
+[npm-image]:http://img.shields.io/npm/v/react-promiseful.svg
+[travis-url]:https://travis-ci.org/moxystudio/react-promiseful
+[travis-image]:http://img.shields.io/travis/moxystudio/react-promiseful/master.svg
+[codecov-url]:https://codecov.io/gh/moxystudio/react-promiseful
+[codecov-image]:https://img.shields.io/codecov/c/github/moxystudio/react-promiseful/master.svg
+[david-dm-url]:https://david-dm.org/moxystudio/react-promiseful
+[david-dm-image]:https://img.shields.io/david/moxystudio/react-promiseful.svg
+[david-dm-dev-url]:https://david-dm.org/moxystudio/react-promiseful?type=dev
+[david-dm-dev-image]:https://img.shields.io/david/dev/moxystudio/react-promiseful.svg
 
 A React component and hook to render children conditionally based on a promise status.
 
@@ -20,7 +20,7 @@ A React component and hook to render children conditionally based on a promise s
 ## Installation
 
 ```sh
-$ npm install react-promise-status
+$ npm install react-promiseful
 ```
 
 This library is written in modern JavaScript and is published in both CommonJS and ES module transpiled variants. If you target older browsers please make sure to transpile accordingly.
@@ -28,11 +28,11 @@ This library is written in modern JavaScript and is published in both CommonJS a
 
 ## Usage
 
-**With `<PromiseStatus>` component**:
+**With `<PromiseState>` component**:
 
 ```js
 import React, { useMemo, useState } from 'react';
-import { PromiseStatus } from 'react-promise-status';
+import { PromiseState } from 'react-promiseful';
 
 const SomeComponent = (props) => {
     const [savePromise, setSavePromise] = useState();
@@ -44,29 +44,29 @@ const SomeComponent = (props) => {
     return (
         <div>
             <button onSave={ handleSave }>Save</button>
-            <PromiseStatus promise={ savePromise }>
-                { (status) => (
+            <PromiseState promise={ savePromise }>
+                { (saveState) => (
                     <p>
-                        { status === 'pending' && 'Saving..' }
-                        { status === 'fulfilled' && 'Saved!' }
-                        { status === 'rejected' && 'Oops, failed to save' }
+                        { saveState.status === 'pending' && 'Saving..' }
+                        { saveState.status === 'fulfilled' && 'Saved!' }
+                        { saveState.status === 'rejected' && 'Oops, failed to save' }
                     </p>
                 ) }
-            </PromiseStatus>
+            </PromiseState>
         </div>
     );
 }
 ```
 
-**With `usePromiseStatus()` hook**:
+**With `usePromiseState()` hook**:
 
 ```js
 import React, { useMemo, useState } from 'react';
-import { usePromiseStatus } from 'react-promise-status';
+import { usePromiseState } from 'react-promiseful';
 
 const SomeComponent = (props) => {
     const [savePromise, setSavePromise] = useState();
-    const [saveStatus] = usePromiseStatus(savePromise);
+    const saveState = usePromiseState(savePromise);
     const handleSave = useMemo(
         () => () => setSavePromise(props.save()),
         [props.save]
@@ -76,9 +76,9 @@ const SomeComponent = (props) => {
         <div>
             <button onSave={ handleSave }>Save</button>
             <p>
-                { saveStatus === 'pending' && 'Saving..' }
-                { saveStatus === 'fulfilled' && 'Saved!' }
-                { saveStatus === 'rejected' && 'Oops, failed to save' }
+                { saveState.status === 'pending' && 'Saving..' }
+                { saveState.status === 'fulfilled' && 'Saved!' }
+                { saveState.status === 'rejected' && 'Oops, failed to save' }
             </p>
         </div>
     );
@@ -87,12 +87,13 @@ const SomeComponent = (props) => {
 
 ## API
 
-- [`<PromiseStatus>`](#promisestatus)
-- [`usePromiseStatus(promise, [options])`](#usepromisestatuspromise-options)
+- [`<PromiseState>`](#promisestate)
+- [`usePromiseState(promise, [options])`](#usepromisestatepromise-options)
+- [`getPromiseState(promise)`](#getpromisestatepromise)
 
-### PromiseStatus
+### PromiseState
 
-The `<PromiseStatus>` component allows you to conditionally render children based on the promise status and fulfillment/rejection value. It leverages the [render props](https://reactjs.org/docs/render-props.html) technique to know what to render.
+The `<PromiseState>` component allows you to conditionally render children based on the promise status and fulfillment/rejection value. It leverages the [render props](https://reactjs.org/docs/render-props.html) technique to know what to render.
 
 #### Props
 
@@ -107,12 +108,15 @@ The promise to use.
 A render prop function with the following signature:
 
 ```js
-(status, value) => {}
+(state) => {}
 ```
 
-The status argument is one of `none`, `pending`, `rejected`, `fulfilled`. The value argument is either the fulfillment value or the rejection value.
+The `state` argument is an object that contains the `status` and the resolved `value`:
 
-The `none` status only happens when there's no promise or when reset. Please see [`delayMs`](#delayms), [`resetFulfilledDelayMs`](#resetfulfilleddelayms) and [`resetRejectedDelayMs`](#resetrejecteddelayms) props for more info.
+- `status` is one of `pending`, `rejected`, `fulfilled`
+- `value` is either the fulfillment value or the rejection value
+
+The `state` argument will be `undefined` when reset. Please see [`delayMs`](#delayms), [`resetFulfilledDelayMs`](#resetfulfilleddelayms) and [`resetRejectedDelayMs`](#resetrejecteddelayms) props for more info.
 
 ##### statusMap
 
@@ -137,29 +141,42 @@ Default: 0 (disabled)
 
 The delay in ms to wait for the promise to settle before changing status to `pending`. Useful if you want to render a loading only when the promise is taking some time.
 
-When a `delayMs` is specified and when the `promise` prop changes from `undefined` to a promise, the status will be `none` during the specified delay and changes to `pending` afterwards.
+When a `delayMs` is specified, the state will be unchanged (or `undefined` if there's no current state) until the specified delay is ellapsed or until the promise resolves or rejects.
 
 ##### resetFulfilledDelayMs
 
 Type: `Number`   
 Default: 0 (disabled)
 
-The delay in ms to change the status to `none` after the promise fulfills. Useful if you no longer want to render a success message after a certain time.
+The delay in ms to reset the state (set it as `undefined`) after the promise fulfills. Useful if you no longer want to render a success message after a certain time.
 
 ##### resetRejectedDelayMs
 
 Type: `Number`   
 Default: 0 (disabled)
 
-The delay in ms to change the status to `none` after the promise rejects. Useful if you no longer want to render an error message after a certain time.
+The delay in ms to reset the state (set it as `undefined`) after the promise rejects. Useful if you no longer want to render an error message after a certain time.
 
-### usePromiseStatus(promise, [options])
+### usePromiseState(promise, [options])
 
-The hook version of the `<PromiseStatus>` component.
+The hook version of the `<PromiseState>` component, including its `options`: [`statusMap`](#statusmap), [`delayMs`](#delayms), [`resetFulfilledDelayMs`](#resetfulfilleddelayms) and [`resetRejectedDelayMs`](#resetrejecteddelayms).
 
-Returns an array with `[status, value]`.
+```js
+const promiseState = usePromiseState(somePromise);
+```
 
-The options are the same as the `<PromiseStatus>`'s props counterparts: [`statusMap`](#statusmap), [`delayMs`](#delayms), [`resetFulfilledDelayMs`](#resetfulfilleddelayms) and [`resetRejectedDelayMs`](#resetrejecteddelayms).
+The returned value from the hook an object that contains the `status` and the resolved `value`:
+
+- `status` is one of `pending`, `rejected`, `fulfilled`
+- `value` is either the fulfillment value or the rejection value
+
+Note that the hook will return `undefined` when reset. Please see [`delayMs`](#delayms), [`resetFulfilledDelayMs`](#resetfulfilleddelayms) and [`resetRejectedDelayMs`](#resetrejecteddelayms) props for more info.
+
+### getPromiseState(promise)
+
+Returns the current promise state, an object with `status` and `value`.
+
+If the `promise` was yet not used in `<PromiseState>` or `usePromiseState()`, the promise state will be `undefined`.
 
 
 ## Tests

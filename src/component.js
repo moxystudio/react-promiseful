@@ -1,13 +1,13 @@
 import { useMemo } from 'react';
 import PropTypes from 'prop-types';
-import usePromiseStatus from './hook';
+import usePromiseState from './hook';
 
 const PromiseStatus = ({ promise, statusMap, delayMs, resetFulfilledDelayMs, resetRejectedDelayMs, children }) => {
-    const [status, value] = usePromiseStatus(promise, { statusMap, delayMs, resetFulfilledDelayMs, resetRejectedDelayMs });
+    const promiseState = usePromiseState(promise, { statusMap, delayMs, resetFulfilledDelayMs, resetRejectedDelayMs });
 
     const renderedChildren = useMemo(
-        () => children(status, value),
-        [children, status, value]
+        () => children(promiseState),
+        [children, promiseState]
     );
 
     return renderedChildren;

@@ -1,13 +1,13 @@
 import React from 'react';
 import { render } from 'react-testing-library';
 import pDelay from 'delay';
-import { usePromiseStatus } from '../src';
+import { usePromiseState } from '../src';
 import hideGlobalErrors from './util/hide-global-errors';
 
 const PromiseStatus = ({ promise, children, ...options }) => {
-    const [status, value] = usePromiseStatus(promise, options);
+    const promiseState = usePromiseState(promise, options);
 
-    return children(status, value);
+    return children(promiseState);
 };
 
 beforeEach(() => {
@@ -30,8 +30,8 @@ it('should return the correct status and value when fullfilled', async () => {
     await pDelay(10);
 
     expect(childrenFn).toHaveBeenCalledTimes(2);
-    expect(childrenFn).toHaveBeenNthCalledWith(1, 'pending', undefined);
-    expect(childrenFn).toHaveBeenNthCalledWith(2, 'fulfilled', 'foo');
+    expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'pending', value: undefined });
+    expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'fulfilled', value: 'foo' });
 });
 
 it('should return the correct status and value when rejected', async () => {
@@ -50,8 +50,8 @@ it('should return the correct status and value when rejected', async () => {
     await pDelay(10);
 
     expect(childrenFn).toHaveBeenCalledTimes(2);
-    expect(childrenFn).toHaveBeenNthCalledWith(1, 'pending', undefined);
-    expect(childrenFn).toHaveBeenNthCalledWith(2, 'rejected', error);
+    expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'pending', value: undefined });
+    expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'rejected', value: error });
 });
 
 it('should return the correct status if there\'s no promise', async () => {
@@ -66,7 +66,7 @@ it('should return the correct status if there\'s no promise', async () => {
     await pDelay(10);
 
     expect(childrenFn).toHaveBeenCalledTimes(1);
-    expect(childrenFn).toHaveBeenNthCalledWith(1, 'none', undefined);
+    expect(childrenFn).toHaveBeenNthCalledWith(1, undefined);
 });
 
 it('should update correctly if promise changes', async () => {
@@ -83,8 +83,8 @@ it('should update correctly if promise changes', async () => {
     await pDelay(10);
 
     expect(childrenFn).toHaveBeenCalledTimes(2);
-    expect(childrenFn).toHaveBeenNthCalledWith(1, 'pending', undefined);
-    expect(childrenFn).toHaveBeenNthCalledWith(2, 'fulfilled', 'foo');
+    expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'pending', value: undefined });
+    expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'fulfilled', value: 'foo' });
     childrenFn.mockClear();
 
     rerender(
@@ -96,9 +96,9 @@ it('should update correctly if promise changes', async () => {
     await pDelay(10);
 
     expect(childrenFn).toHaveBeenCalledTimes(3);
-    expect(childrenFn).toHaveBeenNthCalledWith(1, 'fulfilled', 'foo');
-    expect(childrenFn).toHaveBeenNthCalledWith(2, 'pending', undefined);
-    expect(childrenFn).toHaveBeenNthCalledWith(3, 'fulfilled', 'bar');
+    expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'fulfilled', value: 'foo' });
+    expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'pending', value: undefined });
+    expect(childrenFn).toHaveBeenNthCalledWith(3, { status: 'fulfilled', value: 'bar' });
 });
 
 it('should cleanup correctly if a fulfilled promise changes', async () => {
@@ -113,7 +113,7 @@ it('should cleanup correctly if a fulfilled promise changes', async () => {
     );
 
     expect(childrenFn).toHaveBeenCalledTimes(1);
-    expect(childrenFn).toHaveBeenNthCalledWith(1, 'pending', undefined);
+    expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'pending', value: undefined });
     childrenFn.mockClear();
 
     rerender(
@@ -125,8 +125,8 @@ it('should cleanup correctly if a fulfilled promise changes', async () => {
     await pDelay(10);
 
     expect(childrenFn).toHaveBeenCalledTimes(2);
-    expect(childrenFn).toHaveBeenNthCalledWith(1, 'pending', undefined);
-    expect(childrenFn).toHaveBeenNthCalledWith(2, 'fulfilled', 'bar');
+    expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'pending', value: undefined });
+    expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'fulfilled', value: 'bar' });
 });
 
 it('should cleanup correctly if a rejected promise changes', async () => {
@@ -143,7 +143,7 @@ it('should cleanup correctly if a rejected promise changes', async () => {
     );
 
     expect(childrenFn).toHaveBeenCalledTimes(1);
-    expect(childrenFn).toHaveBeenNthCalledWith(1, 'pending', undefined);
+    expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'pending', value: undefined });
     childrenFn.mockClear();
 
     rerender(
@@ -155,8 +155,8 @@ it('should cleanup correctly if a rejected promise changes', async () => {
     await pDelay(10);
 
     expect(childrenFn).toHaveBeenCalledTimes(2);
-    expect(childrenFn).toHaveBeenNthCalledWith(1, 'pending', undefined);
-    expect(childrenFn).toHaveBeenNthCalledWith(2, 'fulfilled', 'bar');
+    expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'pending', value: undefined });
+    expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'fulfilled', value: 'bar' });
 });
 
 it('should cleanup correctly on unmount', async () => {
@@ -170,7 +170,7 @@ it('should cleanup correctly on unmount', async () => {
     );
 
     expect(childrenFn).toHaveBeenCalledTimes(1);
-    expect(childrenFn).toHaveBeenNthCalledWith(1, 'pending', undefined);
+    expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'pending', value: undefined });
     childrenFn.mockClear();
 
     unmount();
@@ -182,9 +182,9 @@ it('should cleanup correctly on unmount', async () => {
 
 it('should work well if no options are passed', async () => {
     const PromiseStatus = ({ promise, children }) => {
-        const [status, value] = usePromiseStatus(promise);
+        const promiseState = usePromiseState(promise);
 
-        return children(status, value);
+        return children(promiseState);
     };
 
     const childrenFn = jest.fn(() => <div>foo</div>);
@@ -198,7 +198,7 @@ it('should work well if no options are passed', async () => {
     await pDelay(10);
 
     expect(childrenFn).toHaveBeenCalledTimes(1);
-    expect(childrenFn).toHaveBeenNthCalledWith(1, 'none', undefined);
+    expect(childrenFn).toHaveBeenNthCalledWith(1, undefined);
 });
 
 describe('statusMap option', () => {
@@ -216,8 +216,8 @@ describe('statusMap option', () => {
         await pDelay(10);
 
         expect(childrenFn).toHaveBeenCalledTimes(2);
-        expect(childrenFn).toHaveBeenNthCalledWith(1, 'loading', undefined);
-        expect(childrenFn).toHaveBeenNthCalledWith(2, 'fulfilled', 'foo');
+        expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'loading', value: undefined });
+        expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'fulfilled', value: 'foo' });
     });
 
     it('should allow nulish map values', async () => {
@@ -234,8 +234,8 @@ describe('statusMap option', () => {
         await pDelay(10);
 
         expect(childrenFn).toHaveBeenCalledTimes(2);
-        expect(childrenFn).toHaveBeenNthCalledWith(1, null, undefined);
-        expect(childrenFn).toHaveBeenNthCalledWith(2, undefined, 'foo');
+        expect(childrenFn).toHaveBeenNthCalledWith(1, { status: null, value: undefined });
+        expect(childrenFn).toHaveBeenNthCalledWith(2, { status: undefined, value: 'foo' });
     });
 
     it('should render correctly if statusMap changes', async () => {
@@ -251,7 +251,7 @@ describe('statusMap option', () => {
         );
 
         expect(childrenFn).toHaveBeenCalledTimes(1);
-        expect(childrenFn).toHaveBeenNthCalledWith(1, 'loading', undefined);
+        expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'loading', value: undefined });
         childrenFn.mockClear();
 
         rerender(
@@ -263,8 +263,8 @@ describe('statusMap option', () => {
         await pDelay(10);
 
         expect(childrenFn).toHaveBeenCalledTimes(2);
-        expect(childrenFn).toHaveBeenNthCalledWith(1, 'buffering', undefined);
-        expect(childrenFn).toHaveBeenNthCalledWith(2, 'fulfilled', 'foo');
+        expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'buffering', value: undefined });
+        expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'fulfilled', value: 'foo' });
     });
 });
 
@@ -282,8 +282,8 @@ describe('delayMs option', () => {
         await pDelay(10);
 
         expect(childrenFn).toHaveBeenCalledTimes(2);
-        expect(childrenFn).toHaveBeenNthCalledWith(1, 'none', undefined);
-        expect(childrenFn).toHaveBeenNthCalledWith(2, 'fulfilled', 'foo');
+        expect(childrenFn).toHaveBeenNthCalledWith(1, undefined);
+        expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'fulfilled', value: 'foo' });
     });
 
     it('should call with pending outside delay', async () => {
@@ -299,9 +299,9 @@ describe('delayMs option', () => {
         await pDelay(110);
 
         expect(childrenFn).toHaveBeenCalledTimes(3);
-        expect(childrenFn).toHaveBeenNthCalledWith(1, 'none', undefined);
-        expect(childrenFn).toHaveBeenNthCalledWith(2, 'pending', undefined);
-        expect(childrenFn).toHaveBeenNthCalledWith(3, 'fulfilled', 'foo');
+        expect(childrenFn).toHaveBeenNthCalledWith(1, undefined);
+        expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'pending', value: undefined });
+        expect(childrenFn).toHaveBeenNthCalledWith(3, { status: 'fulfilled', value: 'foo' });
     });
 
     it('should render correctly if promise changes', async () => {
@@ -318,8 +318,8 @@ describe('delayMs option', () => {
         await pDelay(10);
 
         expect(childrenFn).toHaveBeenCalledTimes(2);
-        expect(childrenFn).toHaveBeenNthCalledWith(1, 'none', undefined);
-        expect(childrenFn).toHaveBeenNthCalledWith(2, 'fulfilled', 'foo');
+        expect(childrenFn).toHaveBeenNthCalledWith(1, undefined);
+        expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'fulfilled', value: 'foo' });
         childrenFn.mockClear();
 
         rerender(
@@ -331,8 +331,8 @@ describe('delayMs option', () => {
         await pDelay(10);
 
         expect(childrenFn).toHaveBeenCalledTimes(2);
-        expect(childrenFn).toHaveBeenNthCalledWith(1, 'fulfilled', 'foo');
-        expect(childrenFn).toHaveBeenNthCalledWith(2, 'fulfilled', 'bar');
+        expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'fulfilled', value: 'foo' });
+        expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'fulfilled', value: 'bar' });
     });
 
     it('should cleanup correctly if promise changes in between', async () => {
@@ -347,7 +347,7 @@ describe('delayMs option', () => {
         );
 
         expect(childrenFn).toHaveBeenCalledTimes(1);
-        expect(childrenFn).toHaveBeenNthCalledWith(1, 'none', undefined);
+        expect(childrenFn).toHaveBeenNthCalledWith(1, undefined);
         childrenFn.mockClear();
 
         rerender(
@@ -359,8 +359,8 @@ describe('delayMs option', () => {
         await pDelay(10);
 
         expect(childrenFn).toHaveBeenCalledTimes(2);
-        expect(childrenFn).toHaveBeenNthCalledWith(1, 'none', undefined);
-        expect(childrenFn).toHaveBeenNthCalledWith(2, 'fulfilled', 'bar');
+        expect(childrenFn).toHaveBeenNthCalledWith(1, undefined);
+        expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'fulfilled', value: 'bar' });
     });
 
     it('should cleanup correctly on unmount', async () => {
@@ -378,7 +378,7 @@ describe('delayMs option', () => {
         await pDelay(10);
 
         expect(childrenFn).toHaveBeenCalledTimes(1);
-        expect(childrenFn).toHaveBeenNthCalledWith(1, 'none', undefined);
+        expect(childrenFn).toHaveBeenNthCalledWith(1, undefined);
     });
 });
 
@@ -396,9 +396,9 @@ describe('resetFulfilledDelayMs option', () => {
         await pDelay(110);
 
         expect(childrenFn).toHaveBeenCalledTimes(3);
-        expect(childrenFn).toHaveBeenNthCalledWith(1, 'pending', undefined);
-        expect(childrenFn).toHaveBeenNthCalledWith(2, 'fulfilled', 'foo');
-        expect(childrenFn).toHaveBeenNthCalledWith(3, 'none', undefined);
+        expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'pending', value: undefined });
+        expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'fulfilled', value: 'foo' });
+        expect(childrenFn).toHaveBeenNthCalledWith(3, undefined);
     });
 
     it('should not reset status after the delay if rejected', async () => {
@@ -417,8 +417,8 @@ describe('resetFulfilledDelayMs option', () => {
         await pDelay(110);
 
         expect(childrenFn).toHaveBeenCalledTimes(2);
-        expect(childrenFn).toHaveBeenNthCalledWith(1, 'pending', undefined);
-        expect(childrenFn).toHaveBeenNthCalledWith(2, 'rejected', error);
+        expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'pending', value: undefined });
+        expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'rejected', value: error });
     });
 
     it('should cleanup correctly if promise changes in between', async () => {
@@ -435,8 +435,8 @@ describe('resetFulfilledDelayMs option', () => {
         await pDelay(10);
 
         expect(childrenFn).toHaveBeenCalledTimes(2);
-        expect(childrenFn).toHaveBeenNthCalledWith(1, 'pending', undefined);
-        expect(childrenFn).toHaveBeenNthCalledWith(2, 'fulfilled', 'foo');
+        expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'pending', value: undefined });
+        expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'fulfilled', value: 'foo' });
         childrenFn.mockClear();
 
         rerender(
@@ -448,10 +448,10 @@ describe('resetFulfilledDelayMs option', () => {
         await pDelay(110);
 
         expect(childrenFn).toHaveBeenCalledTimes(4);
-        expect(childrenFn).toHaveBeenNthCalledWith(1, 'fulfilled', 'foo');
-        expect(childrenFn).toHaveBeenNthCalledWith(2, 'pending', undefined);
-        expect(childrenFn).toHaveBeenNthCalledWith(3, 'fulfilled', 'bar');
-        expect(childrenFn).toHaveBeenNthCalledWith(4, 'none', undefined);
+        expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'fulfilled', value: 'foo' });
+        expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'pending', value: undefined });
+        expect(childrenFn).toHaveBeenNthCalledWith(3, { status: 'fulfilled', value: 'bar' });
+        expect(childrenFn).toHaveBeenNthCalledWith(4, undefined);
     });
 
     it('should cleanup correctly on unmount', async () => {
@@ -469,7 +469,7 @@ describe('resetFulfilledDelayMs option', () => {
         await pDelay(110);
 
         expect(childrenFn).toHaveBeenCalledTimes(1);
-        expect(childrenFn).toHaveBeenNthCalledWith(1, 'pending', undefined);
+        expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'pending', value: undefined });
     });
 });
 
@@ -490,9 +490,9 @@ describe('resetRejectedDelayMs option', () => {
         await pDelay(110);
 
         expect(childrenFn).toHaveBeenCalledTimes(3);
-        expect(childrenFn).toHaveBeenNthCalledWith(1, 'pending', undefined);
-        expect(childrenFn).toHaveBeenNthCalledWith(2, 'rejected', error);
-        expect(childrenFn).toHaveBeenNthCalledWith(3, 'none', undefined);
+        expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'pending', value: undefined });
+        expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'rejected', value: error });
+        expect(childrenFn).toHaveBeenNthCalledWith(3, undefined);
     });
 
     it('should not reset status after the delay if fulfilled', async () => {
@@ -508,8 +508,8 @@ describe('resetRejectedDelayMs option', () => {
         await pDelay(110);
 
         expect(childrenFn).toHaveBeenCalledTimes(2);
-        expect(childrenFn).toHaveBeenNthCalledWith(1, 'pending', undefined);
-        expect(childrenFn).toHaveBeenNthCalledWith(2, 'fulfilled', 'foo');
+        expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'pending', value: undefined });
+        expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'fulfilled', value: 'foo' });
     });
 
     it('should cleanup correctly if promise changes in between', async () => {
@@ -531,8 +531,8 @@ describe('resetRejectedDelayMs option', () => {
         await pDelay(10);
 
         expect(childrenFn).toHaveBeenCalledTimes(2);
-        expect(childrenFn).toHaveBeenNthCalledWith(1, 'pending', undefined);
-        expect(childrenFn).toHaveBeenNthCalledWith(2, 'rejected', error1);
+        expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'pending', value: undefined });
+        expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'rejected', value: error1 });
         childrenFn.mockClear();
 
         rerender(
@@ -544,10 +544,10 @@ describe('resetRejectedDelayMs option', () => {
         await pDelay(110);
 
         expect(childrenFn).toHaveBeenCalledTimes(4);
-        expect(childrenFn).toHaveBeenNthCalledWith(1, 'rejected', error1);
-        expect(childrenFn).toHaveBeenNthCalledWith(2, 'pending', undefined);
-        expect(childrenFn).toHaveBeenNthCalledWith(3, 'rejected', error2);
-        expect(childrenFn).toHaveBeenNthCalledWith(4, 'none', undefined);
+        expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'rejected', value: error1 });
+        expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'pending', value: undefined });
+        expect(childrenFn).toHaveBeenNthCalledWith(3, { status: 'rejected', value: error2 });
+        expect(childrenFn).toHaveBeenNthCalledWith(4, undefined);
     });
 
     it('should cleanup correctly on unmount', async () => {
@@ -567,6 +567,6 @@ describe('resetRejectedDelayMs option', () => {
         await pDelay(110);
 
         expect(childrenFn).toHaveBeenCalledTimes(1);
-        expect(childrenFn).toHaveBeenNthCalledWith(1, 'pending', undefined);
+        expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'pending', value: undefined });
     });
 });

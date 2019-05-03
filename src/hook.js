@@ -1,13 +1,14 @@
 import { useEffect, useReducer, useMemo } from 'react';
 import pDelay from 'delay';
-import { has } from 'lodash';
+import { has, isEqual } from 'lodash';
+import { resolvePromise } from './promise';
 
 const reducer = (state, action) => {
     let newState;
 
     switch (action.type) {
     case 'reset':
-        newState = { status: 'none', value: undefined };
+        newState = undefined;
         break;
     case 'pending':
         newState = { status: 'pending', value: undefined };
@@ -24,38 +25,13 @@ const reducer = (state, action) => {
     }
 
     // Keep the same state reference if they are strictly equal to avoid rerenders
-    const isSame = newState.status === state.status && newState.value === state.value;
-
-    return isSame ? state : newState;
+    return isEqual(newState, state) ? state : newState;
 };
 
-const getInitialState = (promise, delayMs) => ({
-    status: promise && delayMs <= 0 ? 'pending' : 'none',
-    value: undefined,
-});
+const getInitialState = (promise, delayMs) =>
+    !promise || delayMs > 0 ? undefined : { status: 'pending', value: undefined };
 
-const resolvePromise = (promise, methods) => {
-    let ignore = false;
-
-    promise
-    .then((value) => {
-        if (!ignore) {
-            methods.then && methods.then(value);
-            methods.finally && methods.finally(true);
-        }
-    }, (err) => {
-        if (!ignore) {
-            methods.catch && methods.catch(err);
-            methods.finally && methods.finally(false);
-        }
-    });
-
-    return () => {
-        ignore = true;
-    };
-};
-
-const usePromiseStatus = (promise, options) => {
+const usePromiseState = (promise, options) => {
     options = options || {};
 
     const statusMap = options.statusMap;
@@ -102,7 +78,7 @@ const usePromiseStatus = (promise, options) => {
                     });
                 }
             },
-        });
+        }, true);
 
         return () => {
             // Cancel timeouts & cancel resolving promise
@@ -112,9 +88,16 @@ const usePromiseStatus = (promise, options) => {
         };
     }, [promise]);
 
-    const mappedStatus = has(statusMap, state.status) ? statusMap[state.status] : state.status;
+    return useMemo(() => {
+        if (!state) {
+            return;
+        }
 
-    return [mappedStatus, state.value];
+        return {
+            status: has(statusMap, state.status) ? statusMap[state.status] : state.status,
+            value: state.value,
+        };
+    }, [state, statusMap]);
 };
 
-export default usePromiseStatus;
+export default usePromiseState;

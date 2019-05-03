@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from 'react-testing-library';
 import pDelay from 'delay';
-import { PromiseStatus } from '../src';
+import { PromiseState } from '../src';
 import hideGlobalErrors from './util/hide-global-errors';
 
 beforeEach(() => {
@@ -12,20 +12,20 @@ beforeEach(() => {
 });
 
 it('should render correctly when fullfilled', async () => {
-    const childrenFn = jest.fn(() => <div>foo</div>);
     const promise = Promise.resolve('foo');
+    const childrenFn = jest.fn(() => <div>foo</div>);
 
     render(
-        <PromiseStatus promise={ promise }>
+        <PromiseState promise={ promise }>
             { childrenFn }
-        </PromiseStatus>
+        </PromiseState>
     );
 
     await pDelay(10);
 
     expect(childrenFn).toHaveBeenCalledTimes(2);
-    expect(childrenFn).toHaveBeenNthCalledWith(1, 'pending', undefined);
-    expect(childrenFn).toHaveBeenNthCalledWith(2, 'fulfilled', 'foo');
+    expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'pending', value: undefined });
+    expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'fulfilled', value: 'foo' });
 });
 
 it('should render correctly when rejected', async () => {
@@ -36,16 +36,16 @@ it('should render correctly when rejected', async () => {
     promise.catch(() => {});
 
     render(
-        <PromiseStatus promise={ promise }>
+        <PromiseState promise={ promise }>
             { childrenFn }
-        </PromiseStatus>
+        </PromiseState>
     );
 
     await pDelay(10);
 
     expect(childrenFn).toHaveBeenCalledTimes(2);
-    expect(childrenFn).toHaveBeenNthCalledWith(1, 'pending', undefined);
-    expect(childrenFn).toHaveBeenNthCalledWith(2, 'rejected', error);
+    expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'pending', value: undefined });
+    expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'rejected', value: error });
 });
 
 it('should rerender correctly if promise changes', async () => {
@@ -54,26 +54,26 @@ it('should rerender correctly if promise changes', async () => {
     const childrenFn = jest.fn(() => <div>foo</div>);
 
     const { rerender } = render(
-        <PromiseStatus promise={ promise1 }>
+        <PromiseState promise={ promise1 }>
             { childrenFn }
-        </PromiseStatus>
+        </PromiseState>
     );
 
     await pDelay(10);
 
     rerender(
-        <PromiseStatus promise={ promise2 }>
+        <PromiseState promise={ promise2 }>
             { childrenFn }
-        </PromiseStatus>
+        </PromiseState>
     );
 
     await pDelay(10);
 
     expect(childrenFn).toHaveBeenCalledTimes(4);
-    expect(childrenFn).toHaveBeenNthCalledWith(1, 'pending', undefined);
-    expect(childrenFn).toHaveBeenNthCalledWith(2, 'fulfilled', 'foo');
-    expect(childrenFn).toHaveBeenNthCalledWith(3, 'pending', undefined);
-    expect(childrenFn).toHaveBeenNthCalledWith(4, 'fulfilled', 'bar');
+    expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'pending', value: undefined });
+    expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'fulfilled', value: 'foo' });
+    expect(childrenFn).toHaveBeenNthCalledWith(3, { status: 'pending', value: undefined });
+    expect(childrenFn).toHaveBeenNthCalledWith(4, { status: 'fulfilled', value: 'bar' });
 });
 
 describe('props as options', () => {
@@ -83,16 +83,16 @@ describe('props as options', () => {
         const childrenFn = jest.fn(() => <div>foo</div>);
 
         render(
-            <PromiseStatus promise={ promise } statusMap={ statusMap }>
+            <PromiseState promise={ promise } statusMap={ statusMap }>
                 { childrenFn }
-            </PromiseStatus>
+            </PromiseState>
         );
 
         await pDelay(10);
 
         expect(childrenFn).toHaveBeenCalledTimes(2);
-        expect(childrenFn).toHaveBeenNthCalledWith(1, 'loading', undefined);
-        expect(childrenFn).toHaveBeenNthCalledWith(2, 'fulfilled', 'foo');
+        expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'loading', value: undefined });
+        expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'fulfilled', value: 'foo' });
     });
 
     it('should pass delayMs prop as an option to the hook', async () => {
@@ -100,17 +100,17 @@ describe('props as options', () => {
         const childrenFn = jest.fn(() => <div>foo</div>);
 
         render(
-            <PromiseStatus promise={ promise } delayMs={ 1 }>
+            <PromiseState promise={ promise } delayMs={ 1 }>
                 { childrenFn }
-            </PromiseStatus>
+            </PromiseState>
         );
 
         await pDelay(110);
 
         expect(childrenFn).toHaveBeenCalledTimes(3);
-        expect(childrenFn).toHaveBeenNthCalledWith(1, 'none', undefined);
-        expect(childrenFn).toHaveBeenNthCalledWith(2, 'pending', undefined);
-        expect(childrenFn).toHaveBeenNthCalledWith(3, 'fulfilled', 'foo');
+        expect(childrenFn).toHaveBeenNthCalledWith(1, undefined);
+        expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'pending', value: undefined });
+        expect(childrenFn).toHaveBeenNthCalledWith(3, { status: 'fulfilled', value: 'foo' });
     });
 
     it('should pass resetFulfilledDelayMs prop as an option to the hook', async () => {
@@ -118,17 +118,17 @@ describe('props as options', () => {
         const childrenFn = jest.fn(() => <div>foo</div>);
 
         render(
-            <PromiseStatus promise={ promise } resetFulfilledDelayMs={ 100 }>
+            <PromiseState promise={ promise } resetFulfilledDelayMs={ 100 }>
                 { childrenFn }
-            </PromiseStatus>
+            </PromiseState>
         );
 
         await pDelay(110);
 
         expect(childrenFn).toHaveBeenCalledTimes(3);
-        expect(childrenFn).toHaveBeenNthCalledWith(1, 'pending', undefined);
-        expect(childrenFn).toHaveBeenNthCalledWith(2, 'fulfilled', 'foo');
-        expect(childrenFn).toHaveBeenNthCalledWith(3, 'none', undefined);
+        expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'pending', value: undefined });
+        expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'fulfilled', value: 'foo' });
+        expect(childrenFn).toHaveBeenNthCalledWith(3, undefined);
     });
 
     it('should pass resetRejectedDelayMs prop as an option to the hook', async () => {
@@ -139,16 +139,16 @@ describe('props as options', () => {
         promise.catch(() => {});
 
         render(
-            <PromiseStatus promise={ promise } resetRejectedDelayMs={ 100 }>
+            <PromiseState promise={ promise } resetRejectedDelayMs={ 100 }>
                 { childrenFn }
-            </PromiseStatus>
+            </PromiseState>
         );
 
         await pDelay(110);
 
         expect(childrenFn).toHaveBeenCalledTimes(3);
-        expect(childrenFn).toHaveBeenNthCalledWith(1, 'pending', undefined);
-        expect(childrenFn).toHaveBeenNthCalledWith(2, 'rejected', error);
-        expect(childrenFn).toHaveBeenNthCalledWith(3, 'none', undefined);
+        expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'pending', value: undefined });
+        expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'rejected', value: error });
+        expect(childrenFn).toHaveBeenNthCalledWith(3, undefined);
     });
 });
