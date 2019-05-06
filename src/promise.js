@@ -31,7 +31,7 @@ const resolvePromise = (promise, methods, mark = false) => {
 
         if (!ignore) {
             methods.then && methods.then(value);
-            methods.finally && methods.finally(false);
+            methods.finally && methods.finally(true);
         }
     }, (err) => {
         mark && updatePromiseState(promise, 'rejected', err);

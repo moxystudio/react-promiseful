@@ -1,0 +1,16 @@
+.App__durationInput {
+    margin-right: 20px;
+}
+
+.App__bottom {
+    height: 50px;
+    margin-top: 35px;
+    display: flex;
+    flex-direction: row;
+    align-items: center
+}
+
+.App__saveButton {
+    width: 200px;
+    margin-right: 20px;
+}

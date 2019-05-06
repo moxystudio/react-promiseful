@@ -35,7 +35,9 @@
     "test": "jest --coverage",
     "lint": "eslint --ignore-path .gitignore .",
     "prerelease": "npm t && npm run lint && npm run build",
-    "release": "standard-version"
+    "release": "standard-version",
+    "predeploy": "npm run build && cd demo && npm i && npm run build",
+    "deploy": "gh-pages -d demo/build"
   },
   "jest": {
     "setupFilesAfterEnv": [
@@ -72,6 +74,7 @@
   },
   "dependencies": {
     "delay": "^4.2.0",
+    "gh-pages": "^2.0.1",
     "lodash": "^4.17.11",
     "prop-types": "^15.7.2"
   },

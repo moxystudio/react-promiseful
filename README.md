@@ -26,6 +26,11 @@ $ npm install react-promiseful
 This library is written in modern JavaScript and is published in both CommonJS and ES module transpiled variants. If you target older browsers please make sure to transpile accordingly.
 
 
+## Demo
+
+You may see a simple demo of `react-promiseful` in [https://moxystudio.github.io/react-promiseful](https://moxystudio.github.io/react-promiseful/).
+
+
 ## Usage
 
 **With `<PromiseState>` component**:
@@ -125,7 +130,7 @@ The `state` argument is an object that contains the following properties:
 
 ##### thresholdMs
 
-Type: `Number`   
+Type: `number`   
 Default: 0
 
 The timespan in ms to consider the promise within the threshold. Useful if you want to render a loading only when the promise is taking some time.
@@ -134,7 +139,7 @@ The state will contain a `withinThreshold` boolean property for you to use in th
 
 ##### statusMap
 
-Type: `object`
+Type: `Object`
 
 An object to map statuses, useful when you want to use other names:
 
@@ -146,7 +151,7 @@ An object to map statuses, useful when you want to use other names:
 }
 ```
 
-When [`thresholdMs`](#thresholdms) prop is used, you are able to also map the "withinThreshold" variants. This is useful if you want to hide visual feedback that is too quick. For instance, to avoid having any spinners and success feedback within the threshold:
+When the [`thresholdMs`](#thresholdms) prop is used, you are also able to map the "withinThreshold" variants. This is useful if you want to hide visual feedback that is too quick. For instance, to avoid having any spinners and success feedback within the threshold:
 
 ```js
 {
@@ -158,11 +163,11 @@ When [`thresholdMs`](#thresholdms) prop is used, you are able to also map the "w
 }
 ```
 
-You may omit statuses you don't want to map and the default ones will be used. Moreover, if no "withinThreshold" status is not defined, its normal counter part will be used.
+You may omit statuses you don't want to map and the default ones will be used. Moreover, if no "withinThreshold" statuses are defined, their normal counterparts will be used.
 
 ### onSettle
 
-Type: `function`
+Type: `Function`
 
 A callback to be called whenever the promise fulfills or rejects. It receives the `state` as argument:
 
@@ -182,11 +187,12 @@ const handleSettle = ({ status }) => {
 
 ### onSettledDelayMs
 
-Type: `number`, `object`
+Type: `number`, `Object`   
+Default: 0
 
 The delay before calling `onSettle`. This is useful if you have success animations that must complete before triggering a change in the user-interface.
 
-You may either specify the same delay for both `fulfilled` and `rejected` statuses or an object containing the granular delays:
+You may either specify a number to signal the same delay for both `fulfilled` and `rejected` statuses or an object containing the granular delays:
 
 ```js
 {
@@ -195,7 +201,7 @@ You may either specify the same delay for both `fulfilled` and `rejected` status
 }
 ```
 
-When the [`thresholdMs`](#thresholdms) prop is used, you are able to map "withinThreshold" variants these status. For instance, you may want the callback to be called with a delay, except when there was no visual-feedback:
+When the [`thresholdMs`](#thresholdms) prop is used, you are also able to also map the "withinThreshold" variants. For instance, you may want the callback to be called with a delay, except when there is no visual-feedback:
 
 ```js
 {
@@ -205,7 +211,7 @@ When the [`thresholdMs`](#thresholdms) prop is used, you are able to map "within
 }
 ```
 
-You may omit delays you don't want to map and the default ones will be used. Moreover, if no "withinThreshold" status is not defined, its normal counter part will be used.
+You may omit delays you don't want to map and the default ones will be used. Moreover, if no "withinThreshold" statuses are defined, their normal counterparts will be used.
 
 ### usePromiseState(promise, [options])
 
