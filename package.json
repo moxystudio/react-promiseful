@@ -1,6 +1,6 @@
 {
   "name": "react-promiseful",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "A React component and hook render children conditionally based on a promise state",
   "main": "lib/index.js",
   "module": "es/index.js",
