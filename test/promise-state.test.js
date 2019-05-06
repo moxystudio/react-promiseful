@@ -56,10 +56,10 @@ it('should return the correct promise state when rejected', async () => {
     expect(getPromiseState(promise)).toEqual({ status: 'rejected', value: error });
 });
 
-it('should return undefined if no promise is passed', () => {
-    expect(getPromiseState()).toEqual(undefined);
+it('should return the correct promise state if no promise is passed', () => {
+    expect(getPromiseState()).toEqual({ status: 'none', value: undefined });
 });
 
 it('should return undefined if not used yet by the component nor wook', () => {
-    expect(getPromiseState(Promise.resolve('foo'))).toEqual(undefined);
+    expect(getPromiseState(Promise.resolve('foo'))).toEqual({ status: 'pending', value: undefined });
 });

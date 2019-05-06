@@ -24,8 +24,8 @@ it('should render correctly when fullfilled', async () => {
     await pDelay(10);
 
     expect(childrenFn).toHaveBeenCalledTimes(2);
-    expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'pending', value: undefined });
-    expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'fulfilled', value: 'foo' });
+    expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'pending', value: undefined, withinThreshold: false });
+    expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'fulfilled', value: 'foo', withinThreshold: false });
 });
 
 it('should render correctly when rejected', async () => {
@@ -44,8 +44,8 @@ it('should render correctly when rejected', async () => {
     await pDelay(10);
 
     expect(childrenFn).toHaveBeenCalledTimes(2);
-    expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'pending', value: undefined });
-    expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'rejected', value: error });
+    expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'pending', value: undefined, withinThreshold: false });
+    expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'rejected', value: error, withinThreshold: false });
 });
 
 it('should rerender correctly if promise changes', async () => {
@@ -70,10 +70,10 @@ it('should rerender correctly if promise changes', async () => {
     await pDelay(10);
 
     expect(childrenFn).toHaveBeenCalledTimes(4);
-    expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'pending', value: undefined });
-    expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'fulfilled', value: 'foo' });
-    expect(childrenFn).toHaveBeenNthCalledWith(3, { status: 'pending', value: undefined });
-    expect(childrenFn).toHaveBeenNthCalledWith(4, { status: 'fulfilled', value: 'bar' });
+    expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'pending', value: undefined, withinThreshold: false });
+    expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'fulfilled', value: 'foo', withinThreshold: false });
+    expect(childrenFn).toHaveBeenNthCalledWith(3, { status: 'pending', value: undefined, withinThreshold: false });
+    expect(childrenFn).toHaveBeenNthCalledWith(4, { status: 'fulfilled', value: 'bar', withinThreshold: false });
 });
 
 describe('props as options', () => {
@@ -91,64 +91,61 @@ describe('props as options', () => {
         await pDelay(10);
 
         expect(childrenFn).toHaveBeenCalledTimes(2);
-        expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'loading', value: undefined });
-        expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'fulfilled', value: 'foo' });
+        expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'loading', value: undefined, withinThreshold: false });
+        expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'fulfilled', value: 'foo', withinThreshold: false });
     });
 
-    it('should pass delayMs prop as an option to the hook', async () => {
-        const promise = pDelay(100).then(() => 'foo');
+    it('should pass threshold prop as an option to the hook', async () => {
+        const promise = pDelay(50).then(() => 'foo');
         const childrenFn = jest.fn(() => <div>foo</div>);
 
         render(
-            <PromiseState promise={ promise } delayMs={ 1 }>
+            <PromiseState promise={ promise } thresholdMs={ 1 }>
                 { childrenFn }
             </PromiseState>
         );
 
-        await pDelay(110);
+        await pDelay(60);
 
         expect(childrenFn).toHaveBeenCalledTimes(3);
-        expect(childrenFn).toHaveBeenNthCalledWith(1, undefined);
-        expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'pending', value: undefined });
-        expect(childrenFn).toHaveBeenNthCalledWith(3, { status: 'fulfilled', value: 'foo' });
+        expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'pending', value: undefined, withinThreshold: true });
+        expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'pending', value: undefined, withinThreshold: false });
+        expect(childrenFn).toHaveBeenNthCalledWith(3, { status: 'fulfilled', value: 'foo', withinThreshold: false });
     });
 
-    it('should pass resetFulfilledDelayMs prop as an option to the hook', async () => {
+    it('should pass onSettle prop as an option to the hook', async () => {
         const promise = Promise.resolve('foo');
-        const childrenFn = jest.fn(() => <div>foo</div>);
+        const onSettle = jest.fn();
 
         render(
-            <PromiseState promise={ promise } resetFulfilledDelayMs={ 100 }>
-                { childrenFn }
+            <PromiseState promise={ promise } onSettle={ onSettle }>
+                { () => <div>foo</div> }
             </PromiseState>
         );
 
-        await pDelay(110);
+        await pDelay(10);
 
-        expect(childrenFn).toHaveBeenCalledTimes(3);
-        expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'pending', value: undefined });
-        expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'fulfilled', value: 'foo' });
-        expect(childrenFn).toHaveBeenNthCalledWith(3, undefined);
+        expect(onSettle).toHaveBeenCalledTimes(1);
+        expect(onSettle).toHaveBeenNthCalledWith(1, { status: 'fulfilled', value: 'foo', withinThreshold: false });
     });
 
-    it('should pass resetRejectedDelayMs prop as an option to the hook', async () => {
-        const error = new Error('foo');
-        const promise = Promise.reject(error);
-        const childrenFn = jest.fn(() => <div>foo</div>);
-
-        promise.catch(() => {});
+    it('should pass onSettleDelayMs prop as an option to the hook', async () => {
+        const promise = Promise.resolve('foo');
+        const onSettle = jest.fn();
 
         render(
-            <PromiseState promise={ promise } resetRejectedDelayMs={ 100 }>
-                { childrenFn }
+            <PromiseState promise={ promise } onSettle={ onSettle } onSettleDelayMs={ 20 }>
+                { () => <div>foo</div> }
             </PromiseState>
         );
 
-        await pDelay(110);
+        await pDelay(10);
 
-        expect(childrenFn).toHaveBeenCalledTimes(3);
-        expect(childrenFn).toHaveBeenNthCalledWith(1, { status: 'pending', value: undefined });
-        expect(childrenFn).toHaveBeenNthCalledWith(2, { status: 'rejected', value: error });
-        expect(childrenFn).toHaveBeenNthCalledWith(3, undefined);
+        expect(onSettle).toHaveBeenCalledTimes(0);
+
+        await pDelay(20);
+
+        expect(onSettle).toHaveBeenCalledTimes(1);
+        expect(onSettle).toHaveBeenNthCalledWith(1, { status: 'fulfilled', value: 'foo', withinThreshold: false });
     });
 });

@@ -1,27 +1,40 @@
 const symbol = Symbol();
 
-const setPromiseState = (promise, status, value) => Object.defineProperty(promise, symbol, {
-    value: { status, value },
-    writable: true,
-});
+const updatePromiseState = (promise, status, value) => {
+    // Skip if trying to update to pending when it's already pending or resolved
+    if (status === 'pending' && promise[symbol]) {
+        return;
+    }
 
-const getPromiseState = (promise) => promise && promise[symbol];
+    Object.defineProperty(promise, symbol, {
+        value: { status, value },
+        writable: true,
+    });
+};
+
+const getPromiseState = (promise) => {
+    if (!promise) {
+        return { status: 'none', value: undefined };
+    }
+
+    return promise[symbol] || { status: 'pending', value: undefined };
+};
 
 const resolvePromise = (promise, methods, mark = false) => {
     let ignore = false;
 
-    mark && setPromiseState(promise, 'pending');
+    mark && updatePromiseState(promise, 'pending');
 
     promise
     .then((value) => {
-        mark && setPromiseState(promise, 'fulfilled', value);
+        mark && updatePromiseState(promise, 'fulfilled', value);
 
         if (!ignore) {
             methods.then && methods.then(value);
-            methods.finally && methods.finally(true);
+            methods.finally && methods.finally(false);
         }
     }, (err) => {
-        mark && setPromiseState(promise, 'rejected', err);
+        mark && updatePromiseState(promise, 'rejected', err);
 
         if (!ignore) {
             methods.catch && methods.catch(err);

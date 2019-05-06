@@ -43,11 +43,14 @@ const SomeComponent = (props) => {
 
     return (
         <div>
-            <button onSave={ handleSave }>Save</button>
+            <button disabled={ saveState.status === 'pending' } onSave={ handleSave }>
+                Save
+            </button>
+
             <PromiseState promise={ savePromise }>
                 { (saveState) => (
                     <p>
-                        { saveState.status === 'pending' && 'Saving..' }
+                        { saveState.status === 'pending' && 'Saving...' }
                         { saveState.status === 'fulfilled' && 'Saved!' }
                         { saveState.status === 'rejected' && 'Oops, failed to save' }
                     </p>
@@ -74,7 +77,10 @@ const SomeComponent = (props) => {
 
     return (
         <div>
-            <button onSave={ handleSave }>Save</button>
+             <button disabled={ saveState.status === 'pending' } onSave={ handleSave }>
+                Save
+            </button>
+
             <p>
                 { saveState.status === 'pending' && 'Saving..' }
                 { saveState.status === 'fulfilled' && 'Saved!' }
@@ -101,7 +107,7 @@ The `<PromiseState>` component allows you to conditionally render children based
 
 Type: `Promise`
 
-The promise to use.
+The promise to observe.
 
 ##### children
 
@@ -111,18 +117,26 @@ A render prop function with the following signature:
 (state) => {}
 ```
 
-The `state` argument is an object that contains the `status` and the resolved `value`:
+The `state` argument is an object that contains the following properties:
 
-- `status` is one of `pending`, `rejected`, `fulfilled`
+- `status` is one of `none` (when there's no promise), `pending`, `rejected`, `fulfilled`
 - `value` is either the fulfillment value or the rejection value
+- `withinThreshold` indicating if we are still within the configured [`thresholdMs`](#thresholdms)
 
-The `state` argument will be `undefined` when reset. Please see [`delayMs`](#delayms), [`resetFulfilledDelayMs`](#resetfulfilleddelayms) and [`resetRejectedDelayMs`](#resetrejecteddelayms) props for more info.
+##### thresholdMs
+
+Type: `Number`   
+Default: 0
+
+The timespan in ms to consider the promise within the threshold. Useful if you want to render a loading only when the promise is taking some time.
+
+The state will contain a `withinThreshold` boolean property for you to use in the `children` render prop. Moreover, you may also use "withinThreshold" variants in the [statusMap](#statusmap) and [onSettleDelay](#onsettledelay) props.
 
 ##### statusMap
 
 Type: `object`
 
-An object to map status, useful when you want to use other names:
+An object to map statuses, useful when you want to use other names:
 
 ```js
 {
@@ -132,51 +146,86 @@ An object to map status, useful when you want to use other names:
 }
 ```
 
-You may omit statuses you don't want to map and the default ones will be used.
+When [`thresholdMs`](#thresholdms) prop is used, you are able to also map the "withinThreshold" variants. This is useful if you want to hide visual feedback that is too quick. For instance, to avoid having any spinners and success feedback within the threshold:
 
-##### delayMs
+```js
+{
+    pendingWithinThreshold: 'none',
+    fulfilledWithinThreshold: 'none',
+    pending: 'loading',
+    fulfilled: 'success',
+    rejected: 'error',
+}
+```
 
-Type: `Number`   
-Default: 0 (disabled)
+You may omit statuses you don't want to map and the default ones will be used. Moreover, if no "withinThreshold" status is not defined, its normal counter part will be used.
 
-The delay in ms to wait for the promise to settle before changing status to `pending`. Useful if you want to render a loading only when the promise is taking some time.
+### onSettle
 
-When a `delayMs` is specified, the state will be unchanged (or `undefined` if there's no current state) until the specified delay is ellapsed or until the promise resolves or rejects.
+Type: `function`
 
-##### resetFulfilledDelayMs
+A callback to be called whenever the promise fulfills or rejects. It receives the `state` as argument:
 
-Type: `Number`   
-Default: 0 (disabled)
+```js
+(state) => {}
+```
 
-The delay in ms to reset the state (set it as `undefined`) after the promise fulfills. Useful if you no longer want to render a success message after a certain time.
+This is useful to trigger a change in a user-interface after the promise resolves:
 
-##### resetRejectedDelayMs
+```js
+const handleSettle = ({ status }) => {
+    if (status === 'fulfilled') {
+        complete(); // Imaginary function that completes the operation in the UI
+    }
+};
+```
 
-Type: `Number`   
-Default: 0 (disabled)
+### onSettledDelayMs
 
-The delay in ms to reset the state (set it as `undefined`) after the promise rejects. Useful if you no longer want to render an error message after a certain time.
+Type: `number`, `object`
+
+The delay before calling `onSettle`. This is useful if you have success animations that must complete before triggering a change in the user-interface.
+
+You may either specify the same delay for both `fulfilled` and `rejected` statuses or an object containing the granular delays:
+
+```js
+{
+    fulfilled: 2000,
+    rejected: 2000,
+}
+```
+
+When the [`thresholdMs`](#thresholdms) prop is used, you are able to map "withinThreshold" variants these status. For instance, you may want the callback to be called with a delay, except when there was no visual-feedback:
+
+```js
+{
+    fulfilledWithinThreshold: 0,
+    fulfilled: 2000,
+    rejected: 2000,
+}
+```
+
+You may omit delays you don't want to map and the default ones will be used. Moreover, if no "withinThreshold" status is not defined, its normal counter part will be used.
 
 ### usePromiseState(promise, [options])
 
-The hook version of the `<PromiseState>` component, including its `options`: [`statusMap`](#statusmap), [`delayMs`](#delayms), [`resetFulfilledDelayMs`](#resetfulfilleddelayms) and [`resetRejectedDelayMs`](#resetrejecteddelayms).
+The hook version of the `<PromiseState>` component. The `options` available to both are exactly the same.
 
 ```js
 const promiseState = usePromiseState(somePromise);
 ```
 
-The returned value from the hook an object that contains the `status` and the resolved `value`:
+The returned value from the hook is the promise state, an object that contains the following properties:
 
-- `status` is one of `pending`, `rejected`, `fulfilled`
+- `status` is one of `none` (when there's no promise), `pending`, `rejected`, `fulfilled`
 - `value` is either the fulfillment value or the rejection value
-
-Note that the hook will return `undefined` when reset. Please see [`delayMs`](#delayms), [`resetFulfilledDelayMs`](#resetfulfilleddelayms) and [`resetRejectedDelayMs`](#resetrejecteddelayms) props for more info.
+- `withinThreshold` indicating if we are still within the configured [`thresholdMs`](#thresholdms)
 
 ### getPromiseState(promise)
 
 Returns the current promise state, an object with `status` and `value`.
 
-If the `promise` was yet not used in `<PromiseState>` or `usePromiseState()`, the promise state will be `undefined`.
+If the `promise` was yet not used in `<PromiseState>` or `usePromiseState()`, the promise state will be `pending`.
 
 
 ## Tests
