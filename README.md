@@ -185,7 +185,7 @@ const handleSettle = ({ status }) => {
 };
 ```
 
-### onSettledDelayMs
+### onSettleDelayMs
 
 Type: `number`, `Object`   
 Default: 0
