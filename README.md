@@ -13,6 +13,7 @@
 [david-dm-image]:https://img.shields.io/david/moxystudio/react-promiseful.svg
 [david-dm-dev-url]:https://david-dm.org/moxystudio/react-promiseful?type=dev
 [david-dm-dev-image]:https://img.shields.io/david/dev/moxystudio/react-promiseful.svg
+[![Mentioned in Awesome React Hooks](https://awesome.re/mentioned-badge.svg)](https://github.com/rehooks/awesome-react-hooks)
 
 A React component and hook to render children conditionally based on a promise status.
 
