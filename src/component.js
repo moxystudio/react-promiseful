@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import usePromiseState from './hook';
 
-const PromiseStatus = ({ promise, thresholdMs, onSettleDelayMs, onSettle, statusMap, children }) => {
+const PromiseState = ({ promise, thresholdMs, onSettleDelayMs, onSettle, statusMap, children }) => {
     const promiseState = usePromiseState(promise, { statusMap, thresholdMs, onSettle, onSettleDelayMs });
 
     const renderedChildren = useMemo(
@@ -13,7 +13,7 @@ const PromiseStatus = ({ promise, thresholdMs, onSettleDelayMs, onSettle, status
     return renderedChildren;
 };
 
-PromiseStatus.propTypes = {
+PromiseState.propTypes = {
     promise: PropTypes.object,
     children: PropTypes.func.isRequired,
     thresholdMs: PropTypes.number,
@@ -22,4 +22,4 @@ PromiseStatus.propTypes = {
     statusMap: PropTypes.object,
 };
 
-export default PromiseStatus;
+export default PromiseState;

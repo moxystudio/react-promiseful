@@ -1,5 +1,5 @@
 import React, { Fragment } from 'react';
-import { render } from 'react-testing-library';
+import { render } from '@testing-library/react';
 import pDelay from 'delay';
 import { usePromiseState } from '../src';
 import hideGlobalErrors from './util/hide-global-errors';
