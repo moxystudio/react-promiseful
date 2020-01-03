@@ -38,7 +38,7 @@
     "release": "standard-version",
     "predeploy": "npm run build && cd demo && npm i && npm run build",
     "deploy": "gh-pages -d demo/build",
-    "postrelease": "git push --follow-tags origin master && npm publish"
+    "postrelease": "git push --follow-tags origin HEAD && npm publish"
   },
   "jest": {
     "setupFilesAfterEnv": [
